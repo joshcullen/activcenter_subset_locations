@@ -1,3 +1,4 @@
+#calculates part of the marginal loglikelihood after integrating our the z's
 get.calc.mloglik=function(dist.mat.sel,phi,dat,n.tsegm,n.ac,n.grid,log.theta){
   prob=exp(-phi*dist.mat.sel)
   lprob=log(prob/rowSums(prob))
@@ -78,6 +79,7 @@ sample.z=function(ac.ind,dist.mat,n.grid,n.ac,n.tsegm,dat,phi,log.theta){
   soma=matrix(rowSums(tmp),n.tsegm,n.ac)
   prob=tmp/soma
   
+  #sample from multinomial
   z=rmultinom1(prob=prob,randu=runif(n.tsegm))
   z+1
 }

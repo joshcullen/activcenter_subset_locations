@@ -23,7 +23,7 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1,possib.a
   jump1=list(phi=0.2,ac.ind=rep(1,n.ac))
   accept1=list(phi=0,ac.ind=rep(0,n.ac))
 
-  #pre-calculate distances
+  #pre-calculate distances between each potential AC location (possib.ac) and each actual location in our data (grid.coord)
   dist.mat=GetDistance(AcCoord=data.matrix(possib.ac),GridCoord=data.matrix(grid.coord), 
                        Ngrid=nrow(grid.coord), Nac=nrow(possib.ac))
   

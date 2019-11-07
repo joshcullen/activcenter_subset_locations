@@ -37,13 +37,13 @@ grid.coord<- grid.summary.table(dat=dat, crs=utm.crs, extent=extent, res=res, bu
 dat<- left_join(dat, grid.coord, by="grid.cell") #add gridded locs to DF
 
 #Define initial activity centers (obs > 100)
-tmp<- which(apply(obs[,-1], 2, sum) > 100)
-nobs<- colSums(obs[,tmp+1])
-ac.coord.init<- grid.coord[tmp,-3]
-ac.coord.init<- cbind(ac.coord.init, nobs)
+tmp<- which(apply(obs[,-1], 2, sum) > 50) #49 greatest N locs
+ind<- sample(tmp, size = 20, replace = F)
+nobs<- colSums(obs[,ind+1])
+ac.coord.init<- grid.coord[ind,]
 
-#Highest 20 of 37 initial ACs
-ac.coord.init2<- arrange(ac.coord.init, desc(nobs)) %>% slice(n=1:20)
+#top 49
+ac.coord.init2<- grid.coord[tmp,]
 
 #potential locations for activity centers (AC)
 possib.ac=grid.coord #these don't have to be identical (i.e., we can define AC's on a coarser grid)
@@ -75,7 +75,22 @@ res=gibbs.activity.center(dat=obs[-1,],grid.coord=grid.coord[,-3],n.ac=n.ac,
 plot(res$logl,type='l')
 plot(res$phi,type='l')
 
+#######################
+### Load Saved Data ###
+#######################
+
 # ac<- data.frame(ac=res$z[ngibbs,])
+# ac.coords<- matrix(NA, length(unique(ac$ac)), 2)
+# colnames(ac.coords)<- c("x","y")
+# tmp<- res$coord[ngibbs,]
+# 
+# for (i in 1:length(unique(ac$ac))) {
+#   ac.coords[i,]<- round(c(tmp[i], tmp[i+n.ac]), 0)
+# } 
+# 
+# ac.coords<- data.frame(ac.coords, ac=1:length(unique(ac$ac)))
+
+ac.coords<- read.csv("Activity Center Coordinates.csv", header = T, sep = ',')
 ac<- read.csv("ac.csv", header = T, sep = ',')
 table(ac$ac)
 obs<- cbind(ac, obs)
@@ -113,25 +128,14 @@ usa <- ne_states(country = "United States of America", returnclass = "sf")
 fl<- usa %>% filter(name == "Florida")
 fl<- sf::st_transform(fl, crs = "+init=epsg:32617") #change projection to UTM 17N
 
-ac.coords<- matrix(NA, length(unique(ac$ac)), 2)
-colnames(ac.coords)<- c("x","y")
-tmp<- res$coord[ngibbs,]
-
-for (i in 1:length(unique(ac$ac))) {
-  ac.coords[i,]<- round(c(tmp[i], tmp[i+n.ac]), 0)
-} 
-
-ac.coords<- data.frame(ac.coords, ac=1:length(unique(ac$ac)))
-ac.coords<- read.csv("Activity Center Coordinates.csv", header = T, sep = ',')
-
 
 # ACs and initial values
 ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_point(data = ac.coord.init, aes(x, y, color = "A (initial: n=37)"), size = 2) +
-  geom_point(data = ac.coord.init2, aes(x, y, color = "B (highest: n=20)"), size = 5, pch = 1) +
+  geom_point(data = ac.coord.init2, aes(x, y, color = "A (highest: n=49)"), size = 5, pch = 1) +
+  geom_point(data = ac.coord.init, aes(x, y, color = "B (initial: n=20)"), size = 2) +
   geom_point(data = ac.coords, aes(x, y, color = "C (model: n=20)"), size = 3, alpha = 0.5) +
   labs(x="Longitude", y="Latitude") +
   scale_color_manual("", values = c("grey40",viridis(n=5)[c(3,5)])) +
@@ -158,5 +162,3 @@ setwd("~/Documents/Snail Kite Project/Data/R Scripts/cluster_tsegments_loc")
 
 # write.csv(ac.coords, "Activity Center Coordinates.csv", row.names = F)
 # write.csv(dat, "Snail Kite Gridded Data_AC.csv", row.names = F)
-
-# write.csv(ac.coords, "Activity Center Coordinates_reduced.csv", row.names = F)

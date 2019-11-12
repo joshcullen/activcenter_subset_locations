@@ -36,14 +36,15 @@ buffer<- 10000
 grid.coord<- grid.summary.table(dat=dat, crs=utm.crs, extent=extent, res=res, buffer=buffer)
 dat<- left_join(dat, grid.coord, by="grid.cell") #add gridded locs to DF
 
-#Define initial activity centers (obs > 100)
-tmp<- which(apply(obs[,-1], 2, sum) > 50) #49 greatest N locs
-ind<- sample(tmp, size = 20, replace = F)
-nobs<- colSums(obs[,ind+1])
+#Define initial activity centers (top 50 by # of obs)
+tmp<- colSums(obs[,-1]) %>% data.frame(grid.cell = colnames(obs[,-1]), nobs = .) %>%
+      arrange(desc(nobs)) %>% slice(n=1:50) %>% select(grid.cell)
+ind<- sample(as.numeric(tmp[,1]), size = 20, replace = F)
+# nobs<- colSums(obs[,ind+1])
 ac.coord.init<- grid.coord[ind,]
 
-#top 49
-ac.coord.init2<- grid.coord[tmp,]
+#top 50
+ac.coord.init2<- grid.coord[as.numeric(tmp[,1]),]
 
 #potential locations for activity centers (AC)
 possib.ac=grid.coord #these don't have to be identical (i.e., we can define AC's on a coarser grid)
@@ -128,17 +129,21 @@ usa <- ne_states(country = "United States of America", returnclass = "sf")
 fl<- usa %>% filter(name == "Florida")
 fl<- sf::st_transform(fl, crs = "+init=epsg:32617") #change projection to UTM 17N
 
+nests<- dat %>% group_by(id) %>% select(c(id, utmlong, utmlat)) %>% slice(n=1)
+
 
 # ACs and initial values
 ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_point(data = ac.coord.init2, aes(x, y, color = "A (highest: n=49)"), size = 5, pch = 1) +
+  geom_point(data = ac.coord.init2, aes(x, y, color = "A (highest: n=50)"), size = 5, shape = 1) +
   geom_point(data = ac.coord.init, aes(x, y, color = "B (initial: n=20)"), size = 2) +
   geom_point(data = ac.coords, aes(x, y, color = "C (model: n=20)"), size = 3, alpha = 0.5) +
+  geom_point(data = nests, aes(utmlong, utmlat, color = "Nests"), shape = 17, size = 2) +
   labs(x="Longitude", y="Latitude") +
-  scale_color_manual("", values = c("grey40",viridis(n=5)[c(3,5)])) +
+  scale_color_manual("", values = c("grey40",viridis(n=5)[c(3,5)],"red")) +
+  guides(color = guide_legend(override.aes = list(shape = c(1, 16, 16, 17)))) +
   theme_bw()
 
 # ACs and snail kite locs

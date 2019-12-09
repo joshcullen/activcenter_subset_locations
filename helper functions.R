@@ -62,6 +62,6 @@ get.summary.stats_obs=function(dat){  #dat must have time.seg assigned; for all 
     res=cbind(id, res)
     obs.list[[i]]=res
   }
-  obs<- do.call(rbind.data.frame, obs.list)
+  obs<- do.call(rbind.data.frame, obs.list) %>% data.matrix()
   obs
 }

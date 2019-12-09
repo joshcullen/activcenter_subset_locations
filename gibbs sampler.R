@@ -27,6 +27,11 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1,possib.a
   dist.mat=GetDistance(AcCoord=data.matrix(possib.ac),GridCoord=data.matrix(grid.coord), 
                        Ngrid=nrow(grid.coord), Nac=nrow(possib.ac))
   
+  #progress bar
+  pb <- progress_bar$new(
+    format = " iteration (:current/:total) [:bar] :percent [Elapsed: :elapsed, Remaining: :eta]",
+    total = ngibbs, clear = FALSE, width= 100)
+  
   #gibbs sampler
   for (i in 1:ngibbs){
     pb$tick()  #create progress bar

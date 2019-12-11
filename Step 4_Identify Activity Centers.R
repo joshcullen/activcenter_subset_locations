@@ -77,19 +77,19 @@ plot(res$phi,type='l')
 ### Load Saved Data ###
 #######################
 
-# ac<- data.frame(ac=res$z[ngibbs,])
-# ac.coords<- matrix(NA, length(unique(ac$ac)), 2)
-# colnames(ac.coords)<- c("x","y")
-# tmp<- res$coord[ngibbs,]
-# 
-# for (i in 1:length(unique(ac$ac))) {
-#   ac.coords[i,]<- round(c(tmp[i], tmp[i+n.ac]), 0)
-# } 
-# 
-# ac.coords<- data.frame(ac.coords, ac=1:length(unique(ac$ac)))
+ac<- data.frame(ac=res$z[ngibbs,])
+ac.coords<- matrix(NA, length(unique(ac$ac)), 2)
+colnames(ac.coords)<- c("x","y")
+tmp<- res$coord[ngibbs,]
 
-ac.coords<- read.csv("Activity Center Coordinates.csv", header = T, sep = ',')
-ac<- read.csv("ac.csv", header = T, sep = ',')
+for (i in 1:length(unique(ac$ac))) {
+  ac.coords[i,]<- round(c(tmp[i], tmp[i+n.ac]), 0)
+}
+
+ac.coords<- data.frame(ac.coords, ac=1:length(unique(ac$ac)))
+
+# ac.coords<- read.csv("Activity Center Coordinates.csv", header = T, sep = ',')
+# ac<- read.csv("ac.csv", header = T, sep = ',')
 table(ac$ac)
 obs<- cbind(ac, obs)
 
@@ -126,21 +126,20 @@ usa <- ne_states(country = "United States of America", returnclass = "sf")
 fl<- usa %>% filter(name == "Florida")
 fl<- sf::st_transform(fl, crs = "+init=epsg:32617") #change projection to UTM 17N
 
-nests<- dat %>% group_by(id) %>% select(c(id, x, y)) %>% slice(n=1)
+nests<- dat %>% group_by(id) %>% select(c(id, x.x, y.x)) %>% slice(n=1)
 
 
 # ACs and initial values
 ggplot() +
   geom_sf(data = fl) +
-  coord_sf(xlim = c(min(dat$x-20000), max(dat$x+20000)),
-           ylim = c(min(dat$y-20000), max(dat$y+20000)), expand = FALSE) +
+  coord_sf(xlim = c(min(dat$x.x-20000), max(dat$x.x+20000)),
+           ylim = c(min(dat$y.x-20000), max(dat$y.x+20000)), expand = FALSE) +
   geom_point(data = ac.coord.init2, aes(x, y, color = "A (highest: n=50)"), size = 5, shape = 1) +
-  geom_point(data = ac.coord.init, aes(x, y, color = "B (initial: n=20)"), size = 2) +
-  geom_point(data = ac.coords, aes(x, y, color = "C (model: n=20)"), size = 3, alpha = 0.5) +
-  geom_point(data = nests, aes(x, y, color = "Nests"), shape = 17, size = 2) +
+  geom_point(data = ac.coords, aes(x, y, color = "B (model: n=20)"), size = 3) +
+  geom_point(data = nests, aes(x.x, y.x, color = "Nests"), shape = 17, size = 2) +
   labs(x="Longitude", y="Latitude") +
-  scale_color_manual("", values = c("grey40",viridis(n=5)[c(3,5)],"red")) +
-  guides(color = guide_legend(override.aes = list(shape = c(1, 16, 16, 17)))) +
+  scale_color_manual("", values = c("grey40",viridis(n=5)[3],"red")) +
+  guides(color = guide_legend(override.aes = list(shape = c(1, 16, 17)))) +
   theme_bw()
 
 # ACs and snail kite locs

@@ -2,7 +2,6 @@ rm(list=ls(all=TRUE))
 set.seed(10)
 
 #read important functions
-setwd('U:\\GIT_models\\activcenter_subset_locations')
 library('Rcpp')
 sourceCpp('aux1.cpp')
 source('gibbs sampler.R')

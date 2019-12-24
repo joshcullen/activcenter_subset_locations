@@ -1,9 +1,9 @@
 rm(list=ls(all=TRUE))
-set.seed(9)
+set.seed(13)
 
 #basic setup
 n.tsegm=400
-n.ac=10
+n.ac=5
 n.grid=100
 n=floor(runif(n.tsegm,min=0,max=900))
 
@@ -41,6 +41,5 @@ for (i in 1:n.tsegm){
 }
 image(y[z==1,])
 
-setwd('U:\\GIT_models\\activcenter_subset_locations')
 write.csv(y,'fake data.csv',row.names=F)
 write.csv(grid.coord,'fake data grid.csv',row.names=F)

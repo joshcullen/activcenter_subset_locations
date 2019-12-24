@@ -22,7 +22,7 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1,possib.a
   adaptMH=50
   jump1=list(phi=0.2,ac.ind=rep(1,n.ac))
   accept1=list(phi=0,ac.ind=rep(0,n.ac))
-
+  
   #pre-calculate distances between each potential AC location (possib.ac) and each actual location in our data (grid.coord)
   dist.mat=GetDistance(AcCoord=data.matrix(possib.ac),GridCoord=data.matrix(grid.coord), 
                        Ngrid=nrow(grid.coord), Nac=nrow(possib.ac))
@@ -57,13 +57,14 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1,possib.a
     
     #sample theta
     v=sample.v(z=z,n.ac=n.ac,gamma1=gamma1)
-    theta=rep(NA,n.ac)
-    theta[1]=v[1]
-    tmp=(1-v[1])
-    for (j in 2:n.ac){
-      theta[j]=v[j]*tmp
-      tmp=tmp*(1-v[j])
-    } 
+    # theta=rep(NA,n.ac)
+    # theta[1]=v[1]
+    # tmp=(1-v[1])
+    # for (j in 2:n.ac){
+    #   theta[j]=v[j]*tmp
+    #   tmp=tmp*(1-v[j])
+    # } 
+    theta=GetTheta(v=v,nac=n.ac)
     
     #get loglikel
     logl=get.loglikel(z=z,dist.mat=dist.mat,phi=phi,dat=dat,ac.ind=ac.ind,n.grid=n.grid)

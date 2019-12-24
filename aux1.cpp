@@ -28,7 +28,7 @@ int cat1(double value, NumericVector prob) {
 IntegerVector rmultinom1(NumericMatrix prob, NumericVector randu) {
   
   IntegerVector z(prob.nrow());
-
+  
   for(int i=0; i<prob.nrow();i++){
     z[i]=cat1(randu[i],prob(i,_));
   }
@@ -50,4 +50,49 @@ NumericMatrix GetDistance(NumericMatrix AcCoord,NumericMatrix GridCoord, int Ngr
     }
   }
   return res;
+}
+
+//' This function gets the maximum across rows
+// [[Rcpp::export]]
+NumericVector GetMaxRows(NumericMatrix mat) {
+  
+  NumericVector res(mat.nrow());
+  double tmp;
+  for(int i=0; i<mat.nrow();i++){
+    tmp=R_NegInf;
+    for(int j=0; j<mat.ncol(); j++){
+      if (mat(i,j)>tmp) tmp=mat(i,j);
+    }
+    res[i]=tmp;
+  }
+  return res;
+}
+
+//' This function helps calculate mloglikel
+// [[Rcpp::export]]
+NumericMatrix mloglikel(int ntsegm, int nac, int ngrid, NumericMatrix lprob,IntegerMatrix dat,
+                        NumericVector LogTheta){
+  NumericMatrix res(ntsegm,nac);
+  for(int k=0; k<nac;k++){
+    for (int i=0; i<ntsegm; i++){
+      for (int j=0; j<ngrid; j++){
+        res(i,k)=res(i,k)+dat(i,j)*lprob(k,j);
+      }
+    }
+    res(_,k)=res(_,k)+LogTheta[k];
+  }
+  return res;
+}
+
+//' This function helps calculate theta starting from stick-breaking v's
+// [[Rcpp::export]]
+NumericVector GetTheta(NumericVector v, int nac){
+  NumericVector theta(nac);
+  theta[0]=v[0];
+  double tmp=1-v[0];
+  for(int i=1; i<nac;i++){
+    theta[i]=v[i]*tmp;
+    tmp=tmp*(1-v[i]);
+  }
+  return theta;
 }

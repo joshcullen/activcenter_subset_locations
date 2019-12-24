@@ -3,17 +3,21 @@ get.calc.mloglik=function(dist.mat.sel,phi,dat,n.tsegm,n.ac,n.grid,log.theta){
   prob=exp(-phi*dist.mat.sel)
   lprob=log(prob/rowSums(prob))
   
-  res=matrix(NA,n.tsegm,n.ac)
-  for (i in 1:n.ac){
-    lprob.mat=matrix(lprob[i,],n.tsegm,n.grid,byrow=T)
-    res[,i]=rowSums(dat*lprob.mat)+log.theta[i]
-  }
-  res
+  # res=matrix(NA,n.tsegm,n.ac)
+  # for (i in 1:n.ac){
+  #   lprob.mat=matrix(lprob[i,],n.tsegm,n.grid,byrow=T)
+  #   res[,i]=rowSums(dat*lprob.mat)+log.theta[i]
+  # }
+  # res
+  
+  res1=mloglikel(ntsegm=n.tsegm, nac=n.ac, ngrid=n.grid, lprob=lprob, dat=dat,
+                 LogTheta=log.theta)
+  res1
 }
 #-------------------------------------------------------------
 sample.ac=function(ac.ind,dat,theta,n.ac,n.grid,phi,dist.mat,n.tsegm,n.possib.ac){
   ac.ind.orig=ac.ind.old=ac.ind
-
+  
   for (i in 1:n.ac){
     ac.ind.new=ac.ind.old
     ind=sample(1:n.possib.ac,size=1)
@@ -24,8 +28,8 @@ sample.ac=function(ac.ind,dat,theta,n.ac,n.grid,phi,dist.mat,n.tsegm,n.possib.ac
                              n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log(theta))
     tmp.new=get.calc.mloglik(dist.mat.sel=dist.mat[ac.ind.new,],phi=phi,dat=dat,
                              n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log(theta))
-    max1=-apply(cbind(tmp.old,tmp.new),1,max)
-    max1=matrix(max1,n.tsegm,n.ac)
+    # max1=-apply(cbind(tmp.old,tmp.new),1,max) 
+    max1=-GetMaxRows(mat=cbind(tmp.old,tmp.new))
     tmp.old1=tmp.old+max1
     tmp.new1=tmp.new+max1
     pold=sum(log(rowSums(exp(tmp.old1))))
@@ -43,12 +47,13 @@ sample.phi=function(ac.ind,dist.mat,n.grid,n.ac,phi,jump,dat,n.tsegm,theta){
   new=abs(rnorm(1,mean=old,sd=jump)) #reflection proposal around zero
   
   #get marginal loglikel
-  tmp.old=get.calc.mloglik(dist.mat.sel=dist.mat[ac.ind,],phi=old,dat=dat,
-                           n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log(theta))
-  tmp.new=get.calc.mloglik(dist.mat.sel=dist.mat[ac.ind,],phi=new,dat=dat,
-                           n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log(theta))
-  max1=apply(cbind(tmp.old,tmp.new),1,max)
-  max1=matrix(max1,n.tsegm,n.ac)
+  dist.mat1=dist.mat[ac.ind,]
+  log.theta=log(theta)
+  tmp.old=get.calc.mloglik(dist.mat.sel=dist.mat1,phi=old,dat=dat,
+                           n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log.theta)
+  tmp.new=get.calc.mloglik(dist.mat.sel=dist.mat1,phi=new,dat=dat,
+                           n.tsegm=n.tsegm,n.ac=n.ac,n.grid=n.grid,log.theta=log.theta)
+  max1=GetMaxRows(mat=cbind(tmp.old,tmp.new))
   tmp.old1=tmp.old-max1
   tmp.new1=tmp.new-max1
   pold=sum(log(rowSums(exp(tmp.old1))))
@@ -68,16 +73,18 @@ sample.z=function(ac.ind,dist.mat,n.grid,n.ac,n.tsegm,dat,phi,log.theta){
   lprob=log(prob)
   
   #get loglikel
-  logl=matrix(NA,n.tsegm,n.ac)
-  for (i in 1:n.ac){
-    lprob1=matrix(lprob[i,],n.tsegm,n.grid,byrow=T)
-    logl[,i]=rowSums(dat*lprob1)+log.theta[i]    
-  }
-  maximo=matrix(apply(logl,1,max),n.tsegm,n.ac)
+  logl=mloglikel(ntsegm=n.tsegm, nac=n.ac, ngrid=n.grid, lprob=lprob, dat=dat,
+                 LogTheta=log.theta)
+  
+  # logl=matrix(NA,n.tsegm,n.ac)
+  # for (i in 1:n.ac){
+  #   lprob1=matrix(lprob[i,],n.tsegm,n.grid,byrow=T)
+  #   logl[,i]=rowSums(dat*lprob1)+log.theta[i]    
+  # }
+  maximo=GetMaxRows(mat=logl)
   logl=logl-maximo
   tmp=exp(logl)
-  soma=matrix(rowSums(tmp),n.tsegm,n.ac)
-  prob=tmp/soma
+  prob=tmp/rowSums(tmp)
   
   #sample from multinomial
   z=rmultinom1(prob=prob,randu=runif(n.tsegm))

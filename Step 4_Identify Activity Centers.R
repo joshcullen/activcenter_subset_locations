@@ -25,7 +25,7 @@ source('helper functions.R')
 
 
 #load data
-dat<- read.csv("Snail Kite Gridded Data_larger.csv", header = T, sep = ",")
+dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
 obs<- get.summary.stats_obs(dat)  #frequency of visitation in each location (column) for each time segment (row)
 
 #geographical coordinates of locations
@@ -77,10 +77,13 @@ plot(res$phi,type='l')
 ### Extract AC Coordinates and Assignments ###
 ##############################################
 
-ac<- res$z[which.max(res$logl),]  #use ACs from iteration with max log likelihood
+##use ACs from iteration with max log likelihood (after burn-in)
+ML<- res$logl %>% order(decreasing = T)
+ML<- ML[ML > 500][1]
+ac<- res$z[ML,]
 ac.coords<- matrix(NA, length(unique(ac)), 2)
 colnames(ac.coords)<- c("x","y")
-tmp<- res$coord[which.max(res$logl),]
+tmp<- res$coord[ML,]
 
 for (i in 1:length(unique(ac))) {
   ac.coords[i,]<- round(c(tmp[i], tmp[i+length(unique(ac))]), 0)
@@ -115,8 +118,7 @@ dat %>% group_by(id) %>% dplyr::select(ac) %>% table()
 
 #Load world map data
 usa<- ne_states(country = "United States of America", returnclass = "sf")
-fl<- usa %>% filter(name == "Florida")
-fl<- sf::st_transform(fl, crs = "+init=epsg:32617") #change projection to UTM 17N
+fl<- usa %>% filter(name == "Florida") %>% sf::st_transform(fl, crs = "+init=epsg:32617")
 
 # lakes
 lakes10 <- ne_download(scale = 10, type = 'lakes', category = 'physical', returnclass = "sf")
@@ -158,5 +160,5 @@ ggplot() +
 ### Save Output ###
 ###################
 
-# write.csv(ac.coords, "Activity Center Coordinates.csv", row.names = F)
-# write.csv(dat, "Snail Kite Gridded Data_AC.csv", row.names = F)
+# write.csv(ac.coords, "Activity Center Coordinates_TOHO.csv", row.names = F)
+# write.csv(dat, "Snail Kite Gridded Data_AC_TOHO.csv", row.names = F)

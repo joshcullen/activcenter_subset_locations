@@ -55,7 +55,7 @@ get.summary.stats_obs=function(dat){  #dat must have tseg assigned; for all IDs
     colnames(res)=1:nloc
   
     for (j in 1:ntseg){
-      ind=dat.list[[i]] %>% filter(tseg==j) %>% group_by(grid.cell) %>% count()
+      ind=dat.list[[i]] %>% filter(tseg==j) %>% group_by(grid.cell) %>% tally()
       res[j,ind$grid.cell]=ind$n #takes count of each cluster within given time segment
     }
     id<- rep(unique(dat.list[[i]]$id), ntseg)

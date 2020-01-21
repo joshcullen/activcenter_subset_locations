@@ -38,7 +38,7 @@ grid.coord<- grid.summary.table(dat=dat, crs=utm.crs, extent=extent, res=res, bu
 
 #Define initial activity centers (top 50 by # of obs)
 tmp<- colSums(obs[,-1]) %>% data.frame(grid.cell = colnames(obs[,-1]), nobs = .) %>%
-      arrange(desc(nobs)) %>% slice(n=1:50) %>% select(grid.cell)
+      arrange(desc(nobs)) %>% slice(n=1:50) %>% dplyr::select(grid.cell)
 tmp<- tmp$grid.cell %>% as.character() %>% as.numeric()
 ind<- sample(tmp, size = 20, replace = F)
 # nobs<- colSums(obs[,ind+1])
@@ -126,7 +126,7 @@ lakes10<- sf::st_transform(lakes10, crs = "+init=epsg:32617") %>%
   sf::st_crop(xmin = min(dat$x-20000), xmax = max(dat$x+20000), ymin = min(dat$y-20000),
               ymax = max(dat$y+20000))
 
-nests<- dat %>% group_by(id) %>% select(c(id, x, y)) %>% slice(n=1)
+nests<- dat %>% group_by(id) %>% dplyr::select(c(id, x, y)) %>% slice(n=1)
 
 
 # ACs and initial values
